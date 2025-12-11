@@ -1,23 +1,33 @@
 #!/bin/bash
 # ======================================
 # OM1 Linux One-click Installer
-# 带交互输入版本
+# 逐项输入即时保存版本
 # ======================================
 
 echo "========== OM1 一键安装脚本 =========="
-echo "本脚本将自动完成安装，并生成 .env 配置文件"
+echo "本脚本会在你输入后立即写入 .env"
 echo "======================================="
 
-# ---- 用户交互输入 ----
+# ---- 创建空 .env 文件 ----
+rm -f .env
+touch .env
+
+# ---- 用户交互输入（逐项写入） ----
 read -p "请输入 ETH 地址: " ETH_ADDRESS
+echo "ETH_ADDRESS=\"$ETH_ADDRESS\"" >> .env
+echo "已写入 ETH_ADDRESS 到 .env"
+
 read -p "请输入 OM_API_KEY: " OM_API_KEY
+echo "OM_API_KEY=\"$OM_API_KEY\"" >> .env
+echo "已写入 OM_API_KEY 到 .env"
+
 read -p "请输入 机器人 ID (URID): " URID
+echo "URID=\"$URID\"" >> .env
+echo "已写入 URID 到 .env"
 
 echo ""
-echo "您输入的信息："
-echo "ETH_ADDRESS: $ETH_ADDRESS"
-echo "OM_API_KEY: $OM_API_KEY"
-echo "URID: $URID"
+echo "当前 .env 文件内容："
+cat .env
 echo ""
 
 # ---- 系统依赖 ----
@@ -38,24 +48,18 @@ git submodule update --init
 echo "[4/7] 创建 uv 虚拟环境..."
 uv venv
 
-# ---- 生成 .env 文件 ----
-echo "[5/7] 生成 .env 文件..."
-cat <<EOF > .env
-ETH_ADDRESS="$ETH_ADDRESS"
-OM_API_KEY="$OM_API_KEY"
-URID="$URID"
-EOF
+# ---- 移动 .env 到项目根目录 ----
+echo "[5/7] 拷贝 .env 到项目目录..."
+cp ../.env .
 
-echo ".env 内容如下："
-cat .env
-
-# ---- 加载环境变量 ----
+# ---- 加载环境 ----
 echo "[6/7] 加载环境变量..."
 source .env
 
+# ---- 完成 ----
 echo "[7/7] 安装完成！"
 
 echo "======================================"
-echo "安装完成！你现在可以运行："
+echo "你现在可以运行："
 echo "  uv run src/run.py conversation"
 echo "======================================"
