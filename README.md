@@ -22,10 +22,19 @@ wget -O om1.sh https://raw.githubusercontent.com/qiyan758/OM1-installer/main/om1
 ---
 
 ## 📌 安装完成后运行对话功能：
+这个会消耗积分完成任务
 
+```bash
+cd ~/OM1
+source .venv/bin/activate
+uv run src/run.py spot
+```
+
+##📌 对话功能
 ```bash
 uv run src/run.py conversation
 ```
+
 
 ---
 
