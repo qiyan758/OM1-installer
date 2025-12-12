@@ -1,65 +1,98 @@
 #!/bin/bash
-# ======================================
-# OM1 Linux One-click Installer
-# 逐项输入即时保存版本
-# ======================================
+set -e
 
-echo "========== OM1 一键安装脚本 =========="
-echo "本脚本会在你输入后立即写入 .env"
-echo "======================================="
+echo "======================================"
+echo "       🚀 OM1 自动安装脚本 v3.2"
+echo "======================================"
 
-# ---- 创建空 .env 文件 ----
+OM1_PATH="$HOME/OM1"
+
+# -------------------------------
+# 1) 安装 uv
+# -------------------------------
+echo "[1/8] 检查 uv 是否存在..."
+if ! command -v uv &>/dev/null; then
+    echo "未检测到 uv，正在安装..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+    export PATH=$HOME/.local/bin:$PATH
+
+    if [ -f "$HOME/.local/bin/uv" ]; then
+        ln -sf $HOME/.local/bin/uv /usr/local/bin/uv
+        ln -sf $HOME/.local/bin/uvx /usr/local/bin/uvx
+    fi
+
+    echo "uv 安装成功（PATH 已修复）"
+else
+    echo "uv 已存在，跳过安装"
+fi
+
+if ! command -v uv &>/dev/null; then
+    echo "❌ uv 仍不可用，终止安装"
+    exit 1
+fi
+
+# -------------------------------
+# 2) 克隆仓库
+# -------------------------------
+echo
+echo "[2/8] 克隆 OM1 仓库..."
+if [ -d "$OM1_PATH" ]; then
+    echo "检测到 ~/OM1 已存在，跳过克隆"
+else
+    git clone https://github.com/OpenManus/OM1.git "$OM1_PATH"
+fi
+
+cd "$OM1_PATH"
+
+# -------------------------------
+echo "[3/8] 初始化子模块..."
+git submodule update --init --recursive
+
+# -------------------------------
+echo
+echo "[4/8] 创建 uv 虚拟环境..."
+rm -rf .venv || true
+uv venv
+
+# -------------------------------
+echo
+echo "[5/8] 激活虚拟环境..."
+source .venv/bin/activate
+
+# -------------------------------
+echo
+echo "[6/8] 创建 .env（交互输入）..."
+
 rm -f .env
 touch .env
 
-# ---- 用户交互输入（逐项写入） ----
 read -p "请输入 ETH 地址: " ETH_ADDRESS
 echo "ETH_ADDRESS=\"$ETH_ADDRESS\"" >> .env
-echo "已写入 ETH_ADDRESS 到 .env"
 
 read -p "请输入 OM_API_KEY: " OM_API_KEY
 echo "OM_API_KEY=\"$OM_API_KEY\"" >> .env
-echo "已写入 OM_API_KEY 到 .env"
 
-read -p "请输入 机器人 ID (URID): " URID
+read -p "请输入机器人 ID (URID): " URID
 echo "URID=\"$URID\"" >> .env
-echo "已写入 URID 到 .env"
 
-echo ""
-echo "当前 .env 文件内容："
+echo "生成的 .env 内容如下："
 cat .env
-echo ""
 
-# ---- 系统依赖 ----
-echo "[1/7] 安装系统依赖..."
-sudo apt update
-sudo apt install -y git ffmpeg portaudio19-dev python3-pip
+# -------------------------------
+echo
+echo "[7/8]（跳过）无需安装 requirements.txt，OM1 无依赖文件"
 
-# ---- 克隆仓库 ----
-echo "[2/7] 克隆 OM1 仓库..."
-git clone https://github.com/OpenMind/OM1.git || true
-cd OM1 || exit
-
-# ---- 初始化子模块 ----
-echo "[3/7] 初始化子模块..."
-git submodule update --init
-
-# ---- 创建 uv 虚拟环境 ----
-echo "[4/7] 创建 uv 虚拟环境..."
-uv venv
-
-# ---- 移动 .env 到项目根目录 ----
-echo "[5/7] 拷贝 .env 到项目目录..."
-cp ../.env .
-
-# ---- 加载环境 ----
-echo "[6/7] 加载环境变量..."
-source .env
-
-# ---- 完成 ----
-echo "[7/7] 安装完成！"
+# -------------------------------
+echo
+echo "[8/8] 完成！"
 
 echo "======================================"
-echo "你现在可以运行："
+echo " OM1 安装完成！你现在可以执行："
+echo
+echo "  cd ~/OM1"
+echo "  source .venv/bin/activate"
 echo "  uv run src/run.py conversation"
+echo
 echo "======================================"
