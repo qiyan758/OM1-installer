@@ -63,7 +63,7 @@ source .venv/bin/activate
 
 # -------------------------------
 echo
-echo "[6/8] 创建 .env（交互输入）..."
+echo "[6/8] 创建 .env..."
 
 rm -f .env
 touch .env
